@@ -25,7 +25,7 @@ np.random.shuffle(datasetFull)
 
 # Take a small subset of testing hypothesis to lower run-time
 numRows, numFeatures = datasetFull.shape
-datasetPct = 0.50
+datasetPct = 0.10
 rowsUsed = int(numRows * datasetPct)
 dataset = datasetFull[0:rowsUsed,:]
 
@@ -76,26 +76,25 @@ print("RFC train: ", rfc.score(X_train, y_train))
 print("RFC test:  ", rfc.score(X_test, y_test))
 
 y_pred = rfc.predict(X_test)
-
 print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
-
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
-
-sys.exit()
-
-print("\n{0}: Executing Gaussian naive-bayes classifier".format(time.asctime()) )
-gnb = GaussianNB()
-gnb.fit(X_train, y_train)
-print("GNB train: ", gnb.score(X_train, y_train))
-print("GNB test:  ", gnb.score(X_test, y_test))
 
 print("\n{0}: Executing nearest neighbour classifier".format(time.asctime()) )
 knn = KNeighborsRegressor(n_neighbors=3)
 knn.fit(X_train, y_train)
 print("KNN train: ", knn.score(X_train, y_train))
 print("KNN test:  ", knn.score(X_test, y_test))
+
+y_pred = knn.predict(X_test)
+y_pred = np.around(y_pred, decimals=0)
+#print("y_pred: ", y_pred)
+#print("y_test: ", y_test)
+print("\nScoring Metrics:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix (horz: predicted / vert: actual")
+print(confusion_matrix(y_test, y_pred))
 
 print("\n{0}: Executing decision tree classifier".format(time.asctime()) )
 maxDepth=10
@@ -105,11 +104,25 @@ print("DTC max depth: {0}".format(maxDepth))
 print("DTC train: ", dtc.score(X_train, y_train))
 print("DTC test:  ", dtc.score(X_test, y_test))
 
+y_pred = dtc.predict(X_test)
+print("\nScoring Metrics:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix (horz: predicted / vert: actual")
+print(confusion_matrix(y_test, y_pred))
+
+#sys.exit()
+
 print("\n{0}: Executing adaboost classifier".format(time.asctime()) )
 abc = AdaBoostClassifier()
 abc.fit(X_train, y_train)
 print("AdaBoost train: ", abc.score(X_train, y_train))
 print("AdaBoost test:  ", abc.score(X_test, y_test))
+
+y_pred = abc.predict(X_test)
+print("\nScoring Metrics:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix (horz: predicted / vert: actual")
+print(confusion_matrix(y_test, y_pred))
 
 print("\n{0}: Executing lda classifier".format(time.asctime()) )
 lda = LDA()
@@ -117,17 +130,47 @@ lda.fit(X_train, y_train)
 print("LDA train: ", lda.score(X_train, y_train))
 print("LDA test:  ", lda.score(X_test, y_test))
 
+y_pred = lda.predict(X_test)
+print("\nScoring Metrics:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix (horz: predicted / vert: actual")
+print(confusion_matrix(y_test, y_pred))
+
+print("\n{0}: Executing Gaussian naive-bayes classifier".format(time.asctime()) )
+gnb = GaussianNB()
+gnb.fit(X_train, y_train)
+print("GNB train: ", gnb.score(X_train, y_train))
+print("GNB test:  ", gnb.score(X_test, y_test))
+
+y_pred = gnb.predict(X_test)
+print("\nScoring Metrics:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix (horz: predicted / vert: actual")
+print(confusion_matrix(y_test, y_pred))
+
 print("\n{0}: Executing qda classifier".format(time.asctime()) )
 qda = QDA()
 qda.fit(X_train, y_train)
 print("QDA train: ", qda.score(X_train, y_train))
 print("QDA test:  ", qda.score(X_test, y_test))
 
+y_pred = qda.predict(X_test)
+print("\nScoring Metrics:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix (horz: predicted / vert: actual")
+print(confusion_matrix(y_test, y_pred))
+
 print("\n{0}: Executing logistic regression classifier".format(time.asctime()) )
 lr = LogisticRegression()
 lr.fit(X_train, y_train)
 print("LR train: ", lr.score(X_train, y_train))
 print("LR test:  ", lr.score(X_test, y_test))
+
+y_pred = lr.predict(X_test)
+print("\nScoring Metrics:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix (horz: predicted / vert: actual")
+print(confusion_matrix(y_test, y_pred))
 
 print("\n{0}: Executing linear SVC classifier".format(time.asctime()) )
 lsvc = LinearSVC()
@@ -146,4 +189,11 @@ svc.fit(X_train, y_train)
 #print("SVC C: \t{0}, \tgamma: \t{1} ".format(C, gamma))
 print("SVC train: ", svc.score(X_train, y_train))
 print("SVC test:  ", svc.score(X_test, y_test))
+
+y_pred = svc.predict(X_test)
+print("\nScoring Metrics:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix (horz: predicted / vert: actual")
+print(confusion_matrix(y_test, y_pred))
+
 
