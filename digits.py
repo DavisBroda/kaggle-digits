@@ -25,7 +25,7 @@ np.random.shuffle(datasetFull)
 
 # Take a small subset of testing hypothesis to lower run-time
 numRows, numFeatures = datasetFull.shape
-datasetPct = 0.10
+datasetPct = 0.05
 rowsUsed = int(numRows * datasetPct)
 dataset = datasetFull[0:rowsUsed,:]
 
@@ -62,8 +62,12 @@ from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score
 
 #datasetTest = np.loadtxt(open("data/test.csv","rb"),delimiter=",",skiprows=1)
+
+confusionMatrix = np.zeros((10, 10))
+cscore = np.zeros((8, 10))
 
 print("\n{0}: Executing random forest classifier".format(time.asctime()) )
 maxDepth=100
@@ -78,8 +82,13 @@ print("RFC test:  ", rfc.score(X_test, y_test))
 y_pred = rfc.predict(X_test)
 print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
+crpt = classification_report(y_test, y_pred)
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
+print("f1 score: ", f1_score(y_test, y_pred, average=None))
+
+cscore[0] = f1_score(y_test, y_pred, average=None)
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
 
 print("\n{0}: Executing nearest neighbour classifier".format(time.asctime()) )
 knn = KNeighborsRegressor(n_neighbors=3)
@@ -96,6 +105,9 @@ print(classification_report(y_test, y_pred))
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
 
+cscore[1] = f1_score(y_test, y_pred, average=None)
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
+
 print("\n{0}: Executing decision tree classifier".format(time.asctime()) )
 maxDepth=10
 dtc = DecisionTreeClassifier(max_depth=maxDepth)
@@ -109,6 +121,7 @@ print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
 
 #sys.exit()
 
@@ -123,6 +136,7 @@ print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
 
 print("\n{0}: Executing lda classifier".format(time.asctime()) )
 lda = LDA()
@@ -135,6 +149,7 @@ print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
 
 print("\n{0}: Executing Gaussian naive-bayes classifier".format(time.asctime()) )
 gnb = GaussianNB()
@@ -147,6 +162,7 @@ print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
 
 print("\n{0}: Executing qda classifier".format(time.asctime()) )
 qda = QDA()
@@ -159,6 +175,7 @@ print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
 
 print("\n{0}: Executing logistic regression classifier".format(time.asctime()) )
 lr = LogisticRegression()
@@ -171,6 +188,7 @@ print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
 
 print("\n{0}: Executing linear SVC classifier".format(time.asctime()) )
 lsvc = LinearSVC()
@@ -185,15 +203,17 @@ print("\n{0}: Executing svc classifier".format(time.asctime()) )
 #C=1.0
 #gamma=1/numFeatures
 #svc = SVC(C=C, gamma=gamma)
-svc.fit(X_train, y_train)
+lsvc.fit(X_train, y_train)
 #print("SVC C: \t{0}, \tgamma: \t{1} ".format(C, gamma))
-print("SVC train: ", svc.score(X_train, y_train))
-print("SVC test:  ", svc.score(X_test, y_test))
+print("SVC train: ", lsvc.score(X_train, y_train))
+print("SVC test:  ", lsvc.score(X_test, y_test))
 
-y_pred = svc.predict(X_test)
+y_pred = lsvc.predict(X_test)
 print("\nScoring Metrics:")
 print(classification_report(y_test, y_pred))
 print("\nConfusion Matrix (horz: predicted / vert: actual")
 print(confusion_matrix(y_test, y_pred))
+confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
+
 
 
