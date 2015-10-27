@@ -1,219 +1,250 @@
 import numpy as np
 import time
-import sys
+import logging
 import os.path
-
-print("Starting...")
-
-trainingFileRaw = "data/train.csv"
-trainingFileNpy = "data/train.npy"
-
-# Load the data from file and, if necessary, save RAW file as NPY file to speed future use
-if( os.path.exists(trainingFileNpy) ):
-    print("{0}: Loading NPY dataset: {1}".format(time.asctime(), trainingFileNpy) )
-    datasetFull = np.load(trainingFileNpy)
-else:
-    print("Loading RAW file")
-    print("{0}: Loading RAW dataset: {1}".format(time.asctime(), trainingFileRaw) )
-    datasetFull = np.loadtxt(open(trainingFileRaw,"rb"),delimiter=",",skiprows=1)
-    print("{0}: Saving RAW data into NPY dataset: {1}".format(time.asctime(), trainingFileNpy) )
-    np.save(trainingFileNpy, datasetFull)
-    
-# Get a random sample
-print("{0}: Shuffling full dataset".format(time.asctime()) )
-np.random.shuffle(datasetFull)
-
-# Take a small subset of testing hypothesis to lower run-time
-numRows, numFeatures = datasetFull.shape
-datasetPct = 0.05
-rowsUsed = int(numRows * datasetPct)
-dataset = datasetFull[0:rowsUsed,:]
-
-# Get metrics on the dataset
-m, n = dataset.shape
-
-y = dataset[:,0]
-X = dataset[:,1:m]
-
-print("{0}: Splitting dataset into training and test data".format(time.asctime()) )
-from sklearn.cross_validation import train_test_split
-pctTest = 0.30
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=pctTest, random_state=42)
-
-mTrain, nTrain = X_train.shape
-mTest, nTest = X_test.shape
-
-print("\nKey Metrics")
-print("Dataset (full) size: \t\t{0}".format(numRows))
-print("Num features: \t\t\t{0}".format(numFeatures))
-print("PCT of full data set used: \t{0}".format(datasetPct))
-print("Num rows: \t\t\t{0}".format(m))
-print("Training PCT: \t\t\t{0} \tNum training: \t{1}".format(1-pctTest, mTrain))
-print("Test PCT: \t\t\t{0} \tNum test: \t{1}".format(pctTest, mTest))
-
+import sys
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
+from sklearn.svm import NuSVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.lda import LDA
 from sklearn.qda import QDA
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-from sklearn.metrics import f1_score
-
-#datasetTest = np.loadtxt(open("data/test.csv","rb"),delimiter=",",skiprows=1)
-
-confusionMatrix = np.zeros((10, 10))
-cscore = np.zeros((8, 10))
-
-print("\n{0}: Executing random forest classifier".format(time.asctime()) )
-maxDepth=100
-numEstimators=100
-maxFeatures=100
-rfc = RandomForestClassifier(max_depth=maxDepth, n_estimators=numEstimators, max_features=maxFeatures)
-rfc.fit(X_train, y_train)
-#print("RFC max depth: {0}, num estimators: {1}, max features: {2} ".format(maxDepth, numEstimators, maxFeatures))
-print("RFC train: ", rfc.score(X_train, y_train))
-print("RFC test:  ", rfc.score(X_test, y_test))
-
-y_pred = rfc.predict(X_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-crpt = classification_report(y_test, y_pred)
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-print("f1 score: ", f1_score(y_test, y_pred, average=None))
-
-cscore[0] = f1_score(y_test, y_pred, average=None)
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
-
-print("\n{0}: Executing nearest neighbour classifier".format(time.asctime()) )
-knn = KNeighborsRegressor(n_neighbors=3)
-knn.fit(X_train, y_train)
-print("KNN train: ", knn.score(X_train, y_train))
-print("KNN test:  ", knn.score(X_test, y_test))
-
-y_pred = knn.predict(X_test)
-y_pred = np.around(y_pred, decimals=0)
-#print("y_pred: ", y_pred)
-#print("y_test: ", y_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-
-cscore[1] = f1_score(y_test, y_pred, average=None)
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
-
-print("\n{0}: Executing decision tree classifier".format(time.asctime()) )
-maxDepth=10
-dtc = DecisionTreeClassifier(max_depth=maxDepth)
-dtc.fit(X_train, y_train)
-print("DTC max depth: {0}".format(maxDepth))
-print("DTC train: ", dtc.score(X_train, y_train))
-print("DTC test:  ", dtc.score(X_test, y_test))
-
-y_pred = dtc.predict(X_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
-
-#sys.exit()
-
-print("\n{0}: Executing adaboost classifier".format(time.asctime()) )
-abc = AdaBoostClassifier()
-abc.fit(X_train, y_train)
-print("AdaBoost train: ", abc.score(X_train, y_train))
-print("AdaBoost test:  ", abc.score(X_test, y_test))
-
-y_pred = abc.predict(X_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
-
-print("\n{0}: Executing lda classifier".format(time.asctime()) )
-lda = LDA()
-lda.fit(X_train, y_train)
-print("LDA train: ", lda.score(X_train, y_train))
-print("LDA test:  ", lda.score(X_test, y_test))
-
-y_pred = lda.predict(X_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
-
-print("\n{0}: Executing Gaussian naive-bayes classifier".format(time.asctime()) )
-gnb = GaussianNB()
-gnb.fit(X_train, y_train)
-print("GNB train: ", gnb.score(X_train, y_train))
-print("GNB test:  ", gnb.score(X_test, y_test))
-
-y_pred = gnb.predict(X_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
-
-print("\n{0}: Executing qda classifier".format(time.asctime()) )
-qda = QDA()
-qda.fit(X_train, y_train)
-print("QDA train: ", qda.score(X_train, y_train))
-print("QDA test:  ", qda.score(X_test, y_test))
-
-y_pred = qda.predict(X_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
-
-print("\n{0}: Executing logistic regression classifier".format(time.asctime()) )
-lr = LogisticRegression()
-lr.fit(X_train, y_train)
-print("LR train: ", lr.score(X_train, y_train))
-print("LR test:  ", lr.score(X_test, y_test))
-
-y_pred = lr.predict(X_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
-
-print("\n{0}: Executing linear SVC classifier".format(time.asctime()) )
-lsvc = LinearSVC()
-lsvc.fit(X_train, y_train)
-print("LSVC train: ", lsvc.score(X_train, y_train))
-print("LSVC test:  ", lsvc.score(X_test, y_test))
-
-print("\n{0}: Executing svc classifier".format(time.asctime()) )
-#C=1.0
-#gamma=1/numFeatures
-#svc = SVC(C=C, gamma=gamma)
-#C=1.0
-#gamma=1/numFeatures
-#svc = SVC(C=C, gamma=gamma)
-lsvc.fit(X_train, y_train)
-#print("SVC C: \t{0}, \tgamma: \t{1} ".format(C, gamma))
-print("SVC train: ", lsvc.score(X_train, y_train))
-print("SVC test:  ", lsvc.score(X_test, y_test))
-
-y_pred = lsvc.predict(X_test)
-print("\nScoring Metrics:")
-print(classification_report(y_test, y_pred))
-print("\nConfusion Matrix (horz: predicted / vert: actual")
-print(confusion_matrix(y_test, y_pred))
-confusionMatrix = confusionMatrix + confusion_matrix(y_test, y_pred)
+from sklearn.metrics import *
+from sklearn.cross_validation import train_test_split
 
 
+def train(classifier, X_train, y_train):
+    #log("Training...")
+    classifier.fit(X_train, y_train)    
+    return(classifier)
+    
+def predict(classifier, X):
+    y_pred = classifier.predict(X)
+    y_pred = np.around(y_pred, decimals=0) 
+    return(y_pred)
+
+def load(pathRaw, pathNpy):
+    #log("Loading data...")
+    
+    datasetFull = None    
+    
+    # Load the data from file and, if necessary, save RAW file as NPY file to speed future use
+    if( os.path.exists(pathNpy) ):
+        log("Loading NPY dataset: {0}".format(pathNpy) )
+        datasetFull = np.load(pathNpy)
+    else:
+        log("Loading RAW file")
+        log("Loading RAW dataset: {0}".format(pathRaw) )
+        datasetFull = np.loadtxt(open(pathRaw,"rb"),delimiter=",",skiprows=1)
+        log("Saving RAW data into NPY dataset: {0}".format(pathNpy) )
+        np.save(pathNpy, datasetFull)    
+    
+    a, b = datasetFull.shape
+    log("Full data set: rows: {0}, columns: {1}".format(a,b))
+    
+    return datasetFull
+
+def segment(datasetFull, totalPct, testingPct):
+    #log("Segmenting data...")
+
+    # Shuffle the data set to randomize the order
+    #np.random.shuffle(datasetFull)
+    
+    # Take a small subset of testing hypothesis to lower run-time
+    numRows, numFeatures = datasetFull.shape
+    rowsUsed = int(numRows * totalPct)
+    dataset = datasetFull[0:rowsUsed,:]
+    
+    # Get metrics on the dataset
+    m, n = dataset.shape
+    
+    y = dataset[:,0]
+    X = dataset[:,1:n]
+    
+    # Normalize the data
+    X = X/255.0*2 - 1
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testingPct, random_state=42)
+    
+    a, b = X_train.shape
+    log("X train set: rows: {0}, columns: {1}".format(a,b))
+
+    a, b = X_test.shape
+    log("X test set: rows: {0}, columns: {1}".format(a,b))
+
+    a = y_train.shape
+    log("y train set: {0}]".format(a))
+
+    a = y_test.shape
+    log("y test set: {0}".format(a))
+
+    return(X_train, X_test, y_train, y_test)
+
+def log(message):
+    logging.info(message)
+    
+def score(y_test, y_pred):
+    cmtx = confusion_matrix(y_test, y_pred)    
+    f1 = f1_score(y_test, y_pred, average=None)
+    precision = precision_score(y_test, y_pred, average=None)
+    recall = recall_score(y_test, y_pred, average=None)
+    #roc = roc_auc_score(y_test, y_pred)
+    
+    return(cmtx, f1, precision, recall)
+    
+def report(title, configuration, cmtx, f1, precision, recall):
+    
+    rpt = "\nCLASSIFIER: {0}".format(title)
+    rpt = rpt + "\n\nConfiguration: {0}".format(configuration)
+    
+    rpt = rpt + "\n\nConfusion Matrix (vert: actual / horz: predicted) \n\n{0}".format(cmtx)
+    
+    rpt = rpt + "\n\nScoring Report"
+    rpt = rpt + "\n\n{0} \t{1} \t\t{2} \t{3}".format("label", "f1", "precision", "recall")
+    for i in range(len(f1)):
+        rpt = rpt + "\n{0} \t{1:.5f} \t{2:.5f} \t{3:.5f}".format(i, f1[i], precision[i], recall[i])
+
+    rpt = rpt + "\n{0} \t{1:.5f} \t{2:.5f} \t{3:.5f}".format("mean", np.mean(f1), np.mean(precision), np.mean(recall) )
+
+    log("\n\n{0}".format(rpt))
+    
+    return
+    
+def ensemble(classifiers, X_train, y_train, X_test, y_test):
+    
+    predictions = []
+    f1means = []
+    
+    # Execute (train, predict, score) each classifier individually
+    for i in range(len(classifiers)):
+        x = classifiers[i]
+        title = x[0]
+        classifier = x[1]
+
+        log("Starting classifier: {0}".format(title))
+        
+        train(classifier, X_train, y_train)
+        y_pred = predict(classifier, X_test)
+        cmtx, f1, precision, recall = score(y_test, y_pred)
+        
+        predictions.insert(i, y_pred)
+        f1mean = np.mean(f1)
+        f1means.insert(i, f1mean)
+
+        title = x[0]
+        configuration = "{0}".format(classifier)
+        report(title, configuration, cmtx, f1, precision, recall)
+
+        log("Completed classifier: {0}".format(title))
+    
+    # Select the best classifer based upon the F1 score
+    xf1mean = max(f1means)
+    xidx = np.argmax(f1means)
+    oclassifier = classifiers[xidx]
+    xclassifier = oclassifier[1]
+
+    #log("predictions: {0}".format(predictions))
+    
+    # Use majority voting approach
+    # note: npPredictions matrix [mxn] 
+    #   m = number of classifiers
+    #   n = number of items to classify
+    npPredictions = np.array(predictions)
+    numClassifiers, numItems = npPredictions.shape
+
+    log("Using classifier: {0}".format(xclassifier))
+    
+    return xclassifier
+
+def vote()
+    log("Voting...")
+    
+    # Get the majority vote for each item
+    #   Go through each classifiers by column
+    #   Get the majority vote
+    #   Reconstruct the prediciotns using majority vote
+    
+    # The majority prediction (majorityPrediction) is [mxn]
+    #   m = number of items
+    #   n = 1 (one vote)
+    majorityPrediction = np.zeros(numItems)
+    for i in range(numItems):
+        ipredictions = npPredictions[:,i].astype(int)
+        log( "ipredictions: {0}".format(ipredictions))
+        vote = np.argmax( np.bincount( ipredictions ) )
+        log( "vote: {0}".format(vote))
+        majorityPrediction[i] = vote
+
+    log( "majorityPrediction: {0}".format(majorityPrediction))
+    
+    mcmtx, mf1, mprecision, mrecall = score(y_test, majorityPrediction)
+    report("Majority Vote", "Majority Vote Configuration", mcmtx, mf1, mprecision, mrecall)
+
+    mf1mean = max(mf1)
+
+    #classifierSelected = xclassifier
+    #if mf1mean > xf1mean :
+    #    classifierSelected = "MAJORITY VOTE"
+    #    classifierSelected = xclassifier     
+    
+        
+def main():
+    
+    logging.getLogger('').handlers = []
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    log("Started mainline")
+    
+    log("Start training / cross-validation...")
+
+    trainingFileRaw = "data/train.csv"
+    trainingFileNpy = "data/train.npy"   
+    dataset = load(trainingFileRaw, trainingFileNpy)
+    
+    X_train, X_test, y_train, y_test = segment(dataset, 0.05, 0.20)
+    
+    classifiers = []
+    classifiers.append( [ "Random Forest Classifier", RandomForestClassifier(n_estimators=100) ] )
+    #classifiers.append( [ "Nearest Neighbour Regressor", KNeighborsRegressor(n_neighbors=3) ] )
+    #classifiers.append( [ "Decision Tree Classifier", DecisionTreeClassifier(max_depth=10) ] )
+    classifiers.append( [ "AdaBoost Classifier", AdaBoostClassifier(DecisionTreeClassifier(max_depth=10)) ] )
+    #classifiers.append( [ "LDA Classifier", LDA() ] )
+    #classifiers.append( [ "Guassian NB Classifier", GaussianNB() ] )
+    #classifiers.append( [ "QDA Classifier", QDA(priors=None, reg_param=0.5) ] )
+    classifiers.append( [ "Logistic Regression", LogisticRegression() ] )
+    #classifiers.append( [ "Linear SVC", LinearSVC() ] )
+    classifiers.append( [ "RBF Kernel SVC", SVC(kernel='rbf', C=3, gamma=.01) ] )
+    #classifiers.append( [ "Sigmoid Kernel SVC", SVC(kernel='sigmoid', C=10, gamma=.005) ] )
+    #classifiers.append( [ "Linear Kernel SVC", SVC(kernel='linear', C=10, gamma=.2) ] )
+    classifiers.append( [ "NU SVC", NuSVC() ] )
+    
+    classifierSelected = ensemble(classifiers, X_train, y_train, X_test, y_test)
+    
+    log("Completed training / cross-validation...")
+
+    log("Starting test data analysis...")
+
+    testFileRaw = "data/test.csv"    
+    testFileNpy = "data/test.npy"    
+    X = load(testFileRaw, testFileNpy)
+    X = X/255.0*2 - 1
+    y_pred = predict(classifierSelected, X)
+    print(y_pred.shape)
+    print(y_pred)
+    
+    predictionsCSV = "data/predictions.csv"
+    np.savetxt(predictionsCSV, y_pred, fmt="%u", delimiter=",")
+    
+    log("Completed prediction, output: {0}".format(predictionsCSV))
+
+    log("Completed test data analysis...")
+
+    log("Completed mainline")
+    
+if __name__ == "__main__":
+    main()    
 
