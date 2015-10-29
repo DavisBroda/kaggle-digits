@@ -1,0 +1,258 @@
+2015-10-29 08:13:11,224 - root - INFO - Started mainline
+2015-10-29 08:13:11,224 - root - INFO - Start training / cross-validation...
+2015-10-29 08:13:11,224 - root - INFO - Loading NPY dataset: data/train.npy
+2015-10-29 08:13:11,353 - root - INFO - Full data set: rows: 42000, features: 785
+2015-10-29 08:13:11,353 - root - INFO - X training set: rows: 294, features: 784
+2015-10-29 08:13:11,353 - root - INFO - X cross-validation set: rows: 126, features: 784
+2015-10-29 08:13:11,353 - root - INFO - y training set: rows: (294,)
+2015-10-29 08:13:11,353 - root - INFO - y cross-validation set: rows: (126,)
+2015-10-29 08:13:11,353 - root - INFO - Ensemble classification...
+2015-10-29 08:13:11,353 - root - INFO - Starting classifier: Random Forest Classifier
+2015-10-29 08:13:11,495 - root - INFO - 
+
+CLASSIFIER: Random Forest Classifier
+
+Configuration: RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='auto', max_leaf_nodes=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=100, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+
+Confusion Matrix (vert: actual / horz: predicted) 
+
+[[14  0  0  0  0  0  0  0  0  0]
+ [ 0  9  0  0  0  0  0  0  0  0]
+ [ 2  0 16  0  0  0  1  0  1  1]
+ [ 0  0  0  9  0  4  0  1  0  1]
+ [ 0  0  0  0 13  0  0  1  0  1]
+ [ 1  2  0  0  0  3  1  0  0  0]
+ [ 1  0  0  0  0  1 11  0  0  0]
+ [ 0  0  1  0  0  0  0  8  0  2]
+ [ 0  1  1  0  0  0  1  0  5  2]
+ [ 0  0  0  0  0  0  0  0  0 11]]
+
+Scoring Report
+
+label 	f1 		precision 	recall
+0 	0.87500 	0.77778 	1.00000
+1 	0.85714 	0.75000 	1.00000
+2 	0.82051 	0.88889 	0.76190
+3 	0.75000 	1.00000 	0.60000
+4 	0.92857 	1.00000 	0.86667
+5 	0.40000 	0.37500 	0.42857
+6 	0.81481 	0.78571 	0.84615
+7 	0.76190 	0.80000 	0.72727
+8 	0.62500 	0.83333 	0.50000
+9 	0.75862 	0.61111 	1.00000
+mean 	0.75916 	0.78218 	0.77306
+
+2015-10-29 08:13:11,495 - root - INFO - Completed classifier: Random Forest Classifier
+2015-10-29 08:13:11,495 - root - INFO - Starting classifier: AdaBoost Classifier
+2015-10-29 08:13:11,520 - root - INFO - 
+
+CLASSIFIER: AdaBoost Classifier
+
+Configuration: AdaBoostClassifier(algorithm='SAMME.R',
+          base_estimator=DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=10,
+            max_features=None, max_leaf_nodes=None, min_samples_leaf=1,
+            min_samples_split=2, min_weight_fraction_leaf=0.0,
+            random_state=None, splitter='best'),
+          learning_rate=1.0, n_estimators=50, random_state=None)
+
+Confusion Matrix (vert: actual / horz: predicted) 
+
+[[12  0  1  0  1  0  0  0  0  0]
+ [ 0  6  1  0  0  1  0  0  1  0]
+ [ 1  6  6  2  1  1  1  0  2  1]
+ [ 0  0  0  6  0  0  3  1  4  1]
+ [ 0  1  0  0 11  0  1  0  0  2]
+ [ 1  0  0  0  0  3  1  0  1  1]
+ [ 1  1  1  3  0  1  4  0  2  0]
+ [ 0  2  0  0  1  0  3  4  0  1]
+ [ 0  2  1  1  0  3  2  0  0  1]
+ [ 0  0  1  0  2  0  0  1  0  7]]
+
+Scoring Report
+
+label 	f1 		precision 	recall
+0 	0.82759 	0.80000 	0.85714
+1 	0.44444 	0.33333 	0.66667
+2 	0.37500 	0.54545 	0.28571
+3 	0.44444 	0.50000 	0.40000
+4 	0.70968 	0.68750 	0.73333
+5 	0.37500 	0.33333 	0.42857
+6 	0.28571 	0.26667 	0.30769
+7 	0.47059 	0.66667 	0.36364
+8 	0.00000 	0.00000 	0.00000
+9 	0.56000 	0.50000 	0.63636
+mean 	0.44925 	0.46330 	0.46791
+
+2015-10-29 08:13:11,520 - root - INFO - Completed classifier: AdaBoost Classifier
+2015-10-29 08:13:11,520 - root - INFO - Starting classifier: Logistic Regression
+2015-10-29 08:13:11,782 - root - INFO - 
+
+CLASSIFIER: Logistic Regression
+
+Configuration: LogisticRegression(C=1.0, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, max_iter=100, multi_class='ovr',
+          penalty='l2', random_state=None, solver='liblinear', tol=0.0001,
+          verbose=0)
+
+Confusion Matrix (vert: actual / horz: predicted) 
+
+[[14  0  0  0  0  0  0  0  0  0]
+ [ 0  8  0  0  0  0  1  0  0  0]
+ [ 0  0 17  0  0  0  2  0  1  1]
+ [ 0  0  0 11  0  3  0  1  0  0]
+ [ 0  0  0  0 14  0  0  0  0  1]
+ [ 0  1  0  0  0  5  1  0  0  0]
+ [ 1  0  0  0  0  1 10  0  1  0]
+ [ 0  0  1  0  0  0  0  8  0  2]
+ [ 0  0  1  0  0  0  1  0  8  0]
+ [ 0  0  0  0  0  0  0  0  0 11]]
+
+Scoring Report
+
+label 	f1 		precision 	recall
+0 	0.96552 	0.93333 	1.00000
+1 	0.88889 	0.88889 	0.88889
+2 	0.85000 	0.89474 	0.80952
+3 	0.84615 	1.00000 	0.73333
+4 	0.96552 	1.00000 	0.93333
+5 	0.62500 	0.55556 	0.71429
+6 	0.71429 	0.66667 	0.76923
+7 	0.80000 	0.88889 	0.72727
+8 	0.80000 	0.80000 	0.80000
+9 	0.84615 	0.73333 	1.00000
+mean 	0.83015 	0.83614 	0.83759
+
+2015-10-29 08:13:11,782 - root - INFO - Completed classifier: Logistic Regression
+2015-10-29 08:13:11,782 - root - INFO - Starting classifier: RBF Kernel SVC
+2015-10-29 08:13:11,919 - root - INFO - 
+
+CLASSIFIER: RBF Kernel SVC
+
+Configuration: SVC(C=3, cache_size=200, class_weight=None, coef0=0.0, degree=3, gamma=0.01,
+  kernel='rbf', max_iter=-1, probability=False, random_state=None,
+  shrinking=True, tol=0.001, verbose=False)
+
+Confusion Matrix (vert: actual / horz: predicted) 
+
+[[14  0  0  0  0  0  0  0  0  0]
+ [ 0  8  0  0  0  0  1  0  0  0]
+ [ 0  0 20  0  0  0  0  0  1  0]
+ [ 0  0  2 11  0  1  0  1  0  0]
+ [ 0  0  0  0 13  0  0  0  0  2]
+ [ 0  1  0  0  0  6  0  0  0  0]
+ [ 1  0  0  0  0  1 11  0  0  0]
+ [ 0  0  1  0  0  0  0  8  0  2]
+ [ 0  0  1  0  0  0  0  0  8  1]
+ [ 0  0  0  0  0  0  0  0  0 11]]
+
+Scoring Report
+
+label 	f1 		precision 	recall
+0 	0.96552 	0.93333 	1.00000
+1 	0.88889 	0.88889 	0.88889
+2 	0.88889 	0.83333 	0.95238
+3 	0.84615 	1.00000 	0.73333
+4 	0.92857 	1.00000 	0.86667
+5 	0.80000 	0.75000 	0.85714
+6 	0.88000 	0.91667 	0.84615
+7 	0.80000 	0.88889 	0.72727
+8 	0.84211 	0.88889 	0.80000
+9 	0.81481 	0.68750 	1.00000
+mean 	0.86549 	0.87875 	0.86718
+
+2015-10-29 08:13:11,919 - root - INFO - Completed classifier: RBF Kernel SVC
+2015-10-29 08:13:11,919 - root - INFO - Starting classifier: NU SVC
+2015-10-29 08:13:12,036 - root - INFO - 
+
+CLASSIFIER: NU SVC
+
+Configuration: NuSVC(cache_size=200, coef0=0.0, degree=3, gamma=0.0, kernel='rbf',
+   max_iter=-1, nu=0.5, probability=False, random_state=None,
+   shrinking=True, tol=0.001, verbose=False)
+
+Confusion Matrix (vert: actual / horz: predicted) 
+
+[[14  0  0  0  0  0  0  0  0  0]
+ [ 0  8  0  0  0  0  1  0  0  0]
+ [ 0  1 15  0  1  0  2  1  1  0]
+ [ 0  0  0 10  0  3  0  1  0  1]
+ [ 0  0  0  0 14  0  0  0  0  1]
+ [ 0  1  0  0  0  5  1  0  0  0]
+ [ 1  0  0  0  0  1 10  0  1  0]
+ [ 0  0  1  0  0  0  0  8  0  2]
+ [ 0  0  0  1  0  0  0  0  7  2]
+ [ 0  0  0  0  0  0  0  0  0 11]]
+
+Scoring Report
+
+label 	f1 		precision 	recall
+0 	0.96552 	0.93333 	1.00000
+1 	0.84211 	0.80000 	0.88889
+2 	0.81081 	0.93750 	0.71429
+3 	0.76923 	0.90909 	0.66667
+4 	0.93333 	0.93333 	0.93333
+5 	0.62500 	0.55556 	0.71429
+6 	0.74074 	0.71429 	0.76923
+7 	0.76190 	0.80000 	0.72727
+8 	0.73684 	0.77778 	0.70000
+9 	0.78571 	0.64706 	1.00000
+mean 	0.79712 	0.80079 	0.81140
+
+2015-10-29 08:13:12,036 - root - INFO - Completed classifier: NU SVC
+2015-10-29 08:13:12,037 - root - INFO - DISSENTION: element: 2, count: 30, vote: 9, dissention: 18, dissention PCT: 0.60, ipredictions: [9 6 2 8 9 9 6 2 8 9 9 6 2 8 9 9 9 6 6 2 2 8 8 9 9 9 6 2 8 9]
+2015-10-29 08:13:12,037 - root - INFO - DISSENTION: element: 23, count: 30, vote: 5, dissention: 18, dissention PCT: 0.60, ipredictions: [3 9 5 2 5 3 9 5 2 5 3 9 5 2 5 3 3 9 9 5 5 2 2 5 5 3 9 5 2 5]
+2015-10-29 08:13:12,038 - root - INFO - DISSENTION: element: 24, count: 30, vote: 1, dissention: 18, dissention PCT: 0.60, ipredictions: [6 1 2 2 1 6 1 2 2 1 6 1 2 2 1 6 6 1 1 2 2 2 2 1 1 6 1 2 2 1]
+2015-10-29 08:13:12,038 - root - INFO - DISSENTION: element: 25, count: 30, vote: 6, dissention: 18, dissention PCT: 0.60, ipredictions: [0 5 6 2 6 0 5 6 2 6 0 5 6 2 6 0 0 5 5 6 6 2 2 6 6 0 5 6 2 6]
+2015-10-29 08:13:12,039 - root - INFO - DISSENTION: element: 85, count: 30, vote: 6, dissention: 18, dissention PCT: 0.60, ipredictions: [6 5 6 2 3 6 5 6 2 3 6 5 6 2 3 6 6 5 5 6 6 2 2 3 3 6 5 6 2 3]
+2015-10-29 08:13:12,039 - root - INFO - DISSENTION: element: 114, count: 30, vote: 0, dissention: 18, dissention PCT: 0.60, ipredictions: [0 0 2 2 6 0 0 2 2 6 0 0 2 2 6 0 0 0 0 2 2 2 2 6 6 0 0 2 2 6]
+2015-10-29 08:13:12,040 - root - INFO - DISSENTION: element: 120, count: 30, vote: 3, dissention: 18, dissention PCT: 0.60, ipredictions: [9 3 3 2 9 9 3 3 2 9 9 3 3 2 9 9 9 3 3 3 3 2 2 9 9 9 3 3 2 9]
+2015-10-29 08:13:12,041 - root - INFO - 
+
+CLASSIFIER: Majority Vote
+
+Configuration: Majority Vote Configuration
+
+Confusion Matrix (vert: actual / horz: predicted) 
+
+[[14  0  0  0  0  0  0  0  0  0]
+ [ 0  8  0  0  0  0  1  0  0  0]
+ [ 1  1 16  0  0  0  1  0  1  1]
+ [ 0  0  0 11  0  3  0  1  0  0]
+ [ 0  0  0  0 13  0  0  0  0  2]
+ [ 0  1  0  0  0  5  1  0  0  0]
+ [ 1  0  0  0  0  1 10  0  1  0]
+ [ 0  0  1  0  0  0  0  8  0  2]
+ [ 0  0  0  0  0  0  1  0  7  2]
+ [ 0  0  0  0  0  0  0  0  0 11]]
+
+Scoring Report
+
+label 	f1 		precision 	recall
+0 	0.93333 	0.87500 	1.00000
+1 	0.84211 	0.80000 	0.88889
+2 	0.84211 	0.94118 	0.76190
+3 	0.84615 	1.00000 	0.73333
+4 	0.92857 	1.00000 	0.86667
+5 	0.62500 	0.55556 	0.71429
+6 	0.74074 	0.71429 	0.76923
+7 	0.80000 	0.88889 	0.72727
+8 	0.73684 	0.77778 	0.70000
+9 	0.75862 	0.61111 	1.00000
+mean 	0.80535 	0.81638 	0.81616
+
+2015-10-29 08:13:12,042 - root - INFO - Using classifier: SVC(C=3, cache_size=200, class_weight=None, coef0=0.0, degree=3, gamma=0.01,
+  kernel='rbf', max_iter=-1, probability=False, random_state=None,
+  shrinking=True, tol=0.001, verbose=False)
+2015-10-29 08:13:12,042 - root - INFO - Completed training / cross-validation...
+2015-10-29 08:13:12,042 - root - INFO - Starting test data analysis...
+2015-10-29 08:13:12,042 - root - INFO - Loading NPY dataset: data/test.npy
+(28000,)
+[ 2.  0.  9. ...,  3.  9.  2.]
+2015-10-29 08:13:18,186 - root - INFO - Completed prediction, output: data/predictions.csv
+2015-10-29 08:13:18,186 - root - INFO - Completed test data analysis...
+2015-10-29 08:13:18,186 - root - INFO - Completed mainline

@@ -43,9 +43,6 @@ def load(pathRaw, pathNpy):
         log("Saving RAW data into NPY dataset: {0}".format(pathNpy) )
         np.save(pathNpy, datasetFull)    
     
-    a, b = datasetFull.shape
-    log("Full data set: rows: {0}, columns: {1}".format(a,b))
-    
     return datasetFull
 
 def segment(datasetFull, totalPct, testingPct):
@@ -70,18 +67,6 @@ def segment(datasetFull, totalPct, testingPct):
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testingPct, random_state=42)
     
-    a, b = X_train.shape
-    log("X train set: rows: {0}, columns: {1}".format(a,b))
-
-    a, b = X_test.shape
-    log("X test set: rows: {0}, columns: {1}".format(a,b))
-
-    a = y_train.shape
-    log("y train set: {0}]".format(a))
-
-    a = y_test.shape
-    log("y test set: {0}".format(a))
-
     return(X_train, X_test, y_train, y_test)
 
 def log(message):
@@ -98,7 +83,7 @@ def score(y_test, y_pred):
     
 def report(title, configuration, cmtx, f1, precision, recall):
     
-    rpt = "\nCLASSIFIER: {0}".format(title)
+    rpt = "\n\nCLASSIFIER: {0}".format(title)
     rpt = rpt + "\n\nConfiguration: {0}".format(configuration)
     
     rpt = rpt + "\n\nConfusion Matrix (vert: actual / horz: predicted) \n\n{0}".format(cmtx)
@@ -108,13 +93,15 @@ def report(title, configuration, cmtx, f1, precision, recall):
     for i in range(len(f1)):
         rpt = rpt + "\n{0} \t{1:.5f} \t{2:.5f} \t{3:.5f}".format(i, f1[i], precision[i], recall[i])
 
-    rpt = rpt + "\n{0} \t{1:.5f} \t{2:.5f} \t{3:.5f}".format("mean", np.mean(f1), np.mean(precision), np.mean(recall) )
+    rpt = rpt + "\n{0} \t{1:.5f} \t{2:.5f} \t{3:.5f}\n".format("mean", np.mean(f1), np.mean(precision), np.mean(recall) )
 
-    log("\n\n{0}".format(rpt))
+    log("{0}".format(rpt))
     
     return
     
 def ensemble(classifiers, X_train, y_train, X_test, y_test):
+
+    log("Ensemble classification...")
     
     predictions = []
     f1means = []
@@ -146,27 +133,78 @@ def ensemble(classifiers, X_train, y_train, X_test, y_test):
     xidx = np.argmax(f1means)
     oclassifier = classifiers[xidx]
     xclassifier = oclassifier[1]
-
-    #log("predictions: {0}".format(predictions))
     
-    # Use majority voting approach
-    # note: npPredictions matrix [mxn] 
-    #   m = number of classifiers
-    #   n = number of items to classify
-    npPredictions = np.array(predictions)
-    numClassifiers, numItems = npPredictions.shape
+    majorityPrediction = vote(predictions, f1means)
+
+    mcmtx, mf1, mprecision, mrecall = score(y_test, majorityPrediction)
+    report("Majority Vote", "Majority Vote Configuration", mcmtx, mf1, mprecision, mrecall)
+
+    mf1mean = max(mf1)
+
 
     log("Using classifier: {0}".format(xclassifier))
     
     return xclassifier
 
-def vote()
-    log("Voting...")
+def vote(predictions, f1means):
     
+    #log("predictions: {0}".format(predictions))
+    #log("f1means: {0}".format(f1means))
+
+    npPredictions = np.array(predictions)
+    numClassifiers, numItems = npPredictions.shape
+    #log("INPUT numClassifiers: {0}, numItems: {1}".format(numClassifiers, numItems))
+    
+    weightedPredictions = []
+    j = 0
+    k =0
+    for i in range(numClassifiers):
+        ipredictions = npPredictions[:,i].astype(int)
+        #log("i: {0}, ipredictions: {1}".format(i, ipredictions))
+
+        for j in range(len(ipredictions)):
+            f1mean = f1means[i]
+            #log("f1mean: {0}".format(f1mean))
+            if f1mean > 0.97:
+                #log("k: {0}".format(k))
+                for k in range(k,k+10):
+                    #log("(1) i: {0}, j: {1}, k: {2}, adding predictions: {3}".format(i, j, k, predictions[j]))
+                    weightedPredictions.insert(k, predictions[j])
+                k = k+1
+            elif f1mean > 0.95:
+                #log("k: {0}".format(k))
+                for k in range(k,k+5):
+                    #log("(1) i: {0}, j: {1}, k: {2}, adding predictions: {3}".format(i, j, k, predictions[j]))
+                    weightedPredictions.insert(k, predictions[j])
+                k = k+1
+            elif f1mean > 0.90:
+                #log("k: {0}".format(k))
+                for k in range(k,k+3):
+                    #log("(1) i: {0}, j: {1}, k: {2}, adding predictions: {3}".format(i, j, k, predictions[j]))
+                    weightedPredictions.insert(k, predictions[j])
+                k = k+1
+            elif f1mean > 0.85:
+                #log("k: {0}".format(k))
+                for k in range(k,k+2):
+                    #log("(1) i: {0}, j: {1}, k: {2}, adding predictions: {3}".format(i, j, k, predictions[j]))
+                    weightedPredictions.insert(k, predictions[j])
+                k = k+1
+            else:
+                #log("(2) i: {0}, j: {1}, k: {2}, adding predictions: {3}".format(i, j, k, predictions[j]))
+                weightedPredictions.insert(k, predictions[j])
+                k = k+1
+        
+    # Use majority voting approach
+    # note: npPredictions matrix [mxn] 
+    #   m = number of classifiers
+    #   n = number of items to classify
+    npPredictions = np.array(weightedPredictions)
+    numClassifiers, numItems = npPredictions.shape
+    #log("WEIGHTED numClassifiers: {0}, numItems: {1}".format(numClassifiers, numItems))
+
     # Get the majority vote for each item
     #   Go through each classifiers by column
-    #   Get the majority vote
-    #   Reconstruct the prediciotns using majority vote
+    #   Get the majority vote for that classifier
     
     # The majority prediction (majorityPrediction) is [mxn]
     #   m = number of items
@@ -174,24 +212,17 @@ def vote()
     majorityPrediction = np.zeros(numItems)
     for i in range(numItems):
         ipredictions = npPredictions[:,i].astype(int)
-        log( "ipredictions: {0}".format(ipredictions))
         vote = np.argmax( np.bincount( ipredictions ) )
-        log( "vote: {0}".format(vote))
+        dissentionArray = np.asarray(ipredictions)
+        dissentionCount = (dissentionArray != vote).sum()
+        dissentionPct = dissentionCount / len(ipredictions)
+        if dissentionPct > 0.5:
+            log("DISSENTION: element: {0}, count: {1}, vote: {2}, dissention: {3}, dissention PCT: {4:.2f}, ipredictions: {5}".format(i, len(ipredictions), vote, dissentionCount, dissentionPct, ipredictions))
         majorityPrediction[i] = vote
 
-    log( "majorityPrediction: {0}".format(majorityPrediction))
+    #log("majorityPrediction: {0}".format(majorityPrediction))
+    return majorityPrediction
     
-    mcmtx, mf1, mprecision, mrecall = score(y_test, majorityPrediction)
-    report("Majority Vote", "Majority Vote Configuration", mcmtx, mf1, mprecision, mrecall)
-
-    mf1mean = max(mf1)
-
-    #classifierSelected = xclassifier
-    #if mf1mean > xf1mean :
-    #    classifierSelected = "MAJORITY VOTE"
-    #    classifierSelected = xclassifier     
-    
-        
 def main():
     
     logging.getLogger('').handlers = []
@@ -204,8 +235,20 @@ def main():
     trainingFileRaw = "data/train.csv"
     trainingFileNpy = "data/train.npy"   
     dataset = load(trainingFileRaw, trainingFileNpy)
-    
-    X_train, X_test, y_train, y_test = segment(dataset, 0.05, 0.20)
+    m, n = dataset.shape
+
+    X_train, X_test, y_train, y_test = segment(dataset, 1.0, 0.30)
+
+    mx_train, nx_train = X_train.shape
+    my_train = y_train.shape
+    mx_test, nx_test = X_test.shape
+    my_test = y_test.shape
+
+    log("Full data set: rows: {0}, features: {1}".format(m,n))    
+    log("X training set: rows: {0}, features: {1}".format(mx_train,nx_train))
+    log("X cross-validation set: rows: {0}, features: {1}".format(mx_test,nx_test))
+    log("y training set: rows: {0}".format(my_train))
+    log("y cross-validation set: rows: {0}".format(my_test))
     
     classifiers = []
     classifiers.append( [ "Random Forest Classifier", RandomForestClassifier(n_estimators=100) ] )

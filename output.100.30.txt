@@ -1,0 +1,92 @@
+2015-10-29 08:17:03,661 - root - INFO - Started mainline
+2015-10-29 08:17:03,661 - root - INFO - Start training / cross-validation...
+2015-10-29 08:17:03,661 - root - INFO - Loading NPY dataset: data/train.npy
+2015-10-29 08:17:04,301 - root - INFO - Full data set: rows: 42000, features: 785
+2015-10-29 08:17:04,301 - root - INFO - X training set: rows: 29400, features: 784
+2015-10-29 08:17:04,301 - root - INFO - X cross-validation set: rows: 12600, features: 784
+2015-10-29 08:17:04,301 - root - INFO - y training set: rows: (29400,)
+2015-10-29 08:17:04,301 - root - INFO - y cross-validation set: rows: (12600,)
+2015-10-29 08:17:04,302 - root - INFO - Ensemble classification...
+2015-10-29 08:17:04,302 - root - INFO - Starting classifier: Random Forest Classifier
+2015-10-29 08:17:23,081 - root - INFO - 
+
+CLASSIFIER: Random Forest Classifier
+
+Configuration: RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='auto', max_leaf_nodes=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=100, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+
+Confusion Matrix (vert: actual / horz: predicted) 
+
+[[1186    0    3    1    1    0    6    0    2    1]
+ [   0 1375    6    2    1    2    2    1    0    0]
+ [   6    5 1239    5   11    0    5   10   11    2]
+ [   3    2   12 1268    1   22    1   18   20    8]
+ [   2    0    2    0 1180    0    9    4    4   21]
+ [   4    0    2   18    1 1032   12    2    7    7]
+ [   9    2    4    0    4    6 1226    0    5    0]
+ [   0    6   16    3   10    2    0 1295    2   25]
+ [   1    7    5   12    5    9    6    2 1151   11]
+ [   5    3    3   25   17    2    2   10    8 1156]]
+
+Scoring Report
+
+label 	f1 		precision 	recall
+0 	0.98179 	0.97533 	0.98833
+1 	0.98602 	0.98214 	0.98992
+2 	0.95824 	0.95898 	0.95750
+3 	0.94310 	0.95052 	0.93579
+4 	0.96209 	0.95857 	0.96563
+5 	0.95556 	0.96000 	0.95115
+6 	0.97109 	0.96612 	0.97611
+7 	0.95890 	0.96498 	0.95291
+8 	0.95163 	0.95124 	0.95203
+9 	0.93907 	0.93907 	0.93907
+mean 	0.96075 	0.96070 	0.96084
+
+2015-10-29 08:17:23,082 - root - INFO - Completed classifier: Random Forest Classifier
+2015-10-29 08:17:23,082 - root - INFO - Starting classifier: AdaBoost Classifier
+2015-10-29 08:22:03,935 - root - INFO - 
+
+CLASSIFIER: AdaBoost Classifier
+
+Configuration: AdaBoostClassifier(algorithm='SAMME.R',
+          base_estimator=DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=10,
+            max_features=None, max_leaf_nodes=None, min_samples_leaf=1,
+            min_samples_split=2, min_weight_fraction_leaf=0.0,
+            random_state=None, splitter='best'),
+          learning_rate=1.0, n_estimators=50, random_state=None)
+
+Confusion Matrix (vert: actual / horz: predicted) 
+
+[[1115    7    7    8    2   15    9   11   11   15]
+ [   0 1358    2    5    1    3    3    4    8    5]
+ [   1   13 1101   26   21   14    4   45   33   36]
+ [   1    4   12 1209    4   40    2   21   27   35]
+ [   1    4    3    1 1092    4    4   16   17   80]
+ [   2    5    0   37    6  979    4    1   18   33]
+ [   4    7    5    6   14   40 1112   22   28   18]
+ [   1   10   18    6   13    2    0 1227    8   74]
+ [   1    7    8   25   14   36    2   18 1062   36]
+ [   5    1    4   14   33   10    1   31    7 1125]]
+
+Scoring Report
+
+label 	f1 		precision 	recall
+0 	0.95667 	0.98585 	0.92917
+1 	0.96827 	0.95904 	0.97768
+2 	0.89731 	0.94914 	0.85085
+3 	0.89822 	0.90426 	0.89225
+4 	0.90173 	0.91000 	0.89362
+5 	0.87882 	0.85652 	0.90230
+6 	0.92783 	0.97458 	0.88535
+7 	0.89074 	0.87894 	0.90287
+8 	0.87479 	0.87121 	0.87841
+9 	0.83705 	0.77213 	0.91389
+mean 	0.90314 	0.90617 	0.90264
+
+2015-10-29 08:22:03,935 - root - INFO - Completed classifier: AdaBoost Classifier
+2015-10-29 08:22:03,935 - root - INFO - Starting classifier: Logistic Regression
