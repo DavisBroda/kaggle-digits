@@ -164,6 +164,13 @@ def vote(predictions, f1means):
     numClassifiers, numItems = npPredictions.shape
     #log("INPUT numClassifiers: {0}, numItems: {1}".format(numClassifiers, numItems))
     
+    # Votes are based upon score -- higher scores allow more votes
+    # Rules for voting are in an array of pairs, with each pair containing a 
+    # threshold and votes.  If the score is equal or higher than the score, 
+    # then that is the vote they get (and voting finishes).  Note that even
+    # low scores get a single vote
+    rules = [ [0.99, 55], [0.98, 34], [0.97, 21], [0.95, 13], [0.93, 8],[0.92, 5], [0.91, 3], [0.90, 2], [0.0, 1] ]
+    
     weightedPredictions = []
     j = 0
     k =0
@@ -172,36 +179,17 @@ def vote(predictions, f1means):
         #log("i: {0}, ipredictions: {1}".format(i, ipredictions))
 
         f1mean = f1means[i]
-        log("f1mean: {0}".format(f1mean))
-        if f1mean > 0.97:
-            multiplier = 20
-            for k in range(k,k+multiplier):
-                #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-                weightedPredictions.insert(k, predictions[i])
-            k = k+1
-        elif f1mean > 0.95:
-            multiplier = 10
-            for k in range(k,k+multiplier):
-                #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-                weightedPredictions.insert(k, predictions[i])
-            k = k+1
-        elif f1mean > 0.90:
-            multiplier = 5
-            for k in range(k,k+multiplier):
-                #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-                weightedPredictions.insert(k, predictions[i])
-            k = k+1
-        elif f1mean > 0.85:
-            multiplier = 2
-            for k in range(k,k+multiplier):
-                #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-                weightedPredictions.insert(k, predictions[i])
-            k = k+1
-        else:
-            multiplier = 1
-            #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-            weightedPredictions.insert(k, predictions[i])
-            k = k+1
+        #log("classifier number: {0}, f1mean: {1}".format(i, f1mean))
+        
+        for rule in rules:
+            pct = rule[0]
+            multiplier = rule[1]
+            if f1mean >= pct:
+                for k in range(k,k+multiplier):
+                    #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
+                    weightedPredictions.insert(k, predictions[i])
+                k = k+1
+                break
         
     # Use majority voting approach
     # note: npPredictions matrix [mxn] 
@@ -218,6 +206,7 @@ def vote(predictions, f1means):
     # The majority prediction (majorityPrediction) is [mxn]
     #   m = number of items
     #   n = 1 (one vote)
+    dissentionTotal = 0;
     majorityPrediction = np.zeros(numItems)
     for i in range(numItems):
         ipredictions = npPredictions[:,i].astype(int)
@@ -227,28 +216,39 @@ def vote(predictions, f1means):
         dissentionPct = dissentionCount / len(ipredictions)
         if dissentionPct > 0.33:
             log("DISSENTION: element: {0}, count: {1}, vote: {2}, dissention: {3}, dissention PCT: {4:.2f}, ipredictions: {5}".format(i, len(ipredictions), vote, dissentionCount, dissentionPct, ipredictions))
+            dissentionTotal = dissentionTotal + 1;
         majorityPrediction[i] = vote
+
+    log("Total Items: {0}, Dissention Total: {1}, Dissention Percentage: {2:0.2f}".format(numItems, dissentionTotal, dissentionTotal/numItems))
 
     #log("majorityPrediction: {0}".format(majorityPrediction))
     return majorityPrediction
     
 def main():
     
+    pctData = 0.01
+    if len(sys.argv) > 1:
+        pctData = float(sys.argv[1])
+    
+    pctTest = 0.3
+    if len(sys.argv) > 2:
+        pctTest = float(sys.argv[2])
+    
+    randomState = 19621015
+    if len(sys.argv) > 3:
+        randomState = int(sys.argv[3])
+    
     logging.getLogger('').handlers = []
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     log("Started mainline")
-    
-    log("Start training / cross-validation...")
+    log("Using pctData(1): {0}, pctTest(2): {1}, randomState(3): {2}".format(pctData, pctTest, randomState))
 
     trainingFileRaw = "data/train.csv"
     trainingFileNpy = "data/train.npy"   
     dataset = load(trainingFileRaw, trainingFileNpy)
     m, n = dataset.shape
 
-    pctData = 0.01
-    pctTest = 0.3
-    randomState = 1962
     X_train, X_test, y_train, y_test = segment(dataset, pctData, pctTest, randomState)
 
     mx_train, nx_train = X_train.shape
@@ -263,10 +263,10 @@ def main():
     log("y cross-validation set: rows: {0}".format(my_test))
     
     classifiers = []
-    #classifiers.append( [ "Random Forest Classifier", RandomForestClassifier(n_estimators=180) ] )
-    #classifiers.append( [ "Nearest Neighbour Regressor", KNeighborsRegressor(n_neighbors=3) ] )
+    classifiers.append( [ "Random Forest Classifier", RandomForestClassifier(n_estimators=180) ] )
+    classifiers.append( [ "Nearest Neighbour Regressor", KNeighborsRegressor(n_neighbors=3) ] )
     #classifiers.append( [ "Decision Tree Classifier", DecisionTreeClassifier(max_depth=10) ] )
-    #classifiers.append( [ "AdaBoost Classifier", AdaBoostClassifier(DecisionTreeClassifier(max_depth=10)) ] )
+    classifiers.append( [ "AdaBoost Classifier", AdaBoostClassifier(DecisionTreeClassifier(max_depth=10)) ] )
     #classifiers.append( [ "LDA Classifier", LDA() ] )
     #classifiers.append( [ "Guassian NB Classifier", GaussianNB() ] )
     #classifiers.append( [ "QDA Classifier", QDA(priors=None, reg_param=0.5) ] )

@@ -186,21 +186,29 @@ def visualize(parameters, predictions):
     
 def main():
     
+    pctData = 0.01
+    if len(sys.argv) > 1:
+        pctData = sys.argv[1]
+    
+    pctTest = 0.3
+    if len(sys.argv) > 2:
+        pctTest = sys.argv[2]
+    
+    randomState = 19621015
+    if len(sys.argv) > 3:
+        randomState = sys.argv[3]
+    
     logging.getLogger('').handlers = []
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     log("Started mainline")
+    log("Using pctData(1): {0}, pctTest(2): {1}, randomState(3): {2}".format(pctData, pctTest, randomState))
     
-    log("Start training / cross-validation...")
-
     trainingFileRaw = "data/train.csv"
     trainingFileNpy = "data/train.npy"   
     dataset = load(trainingFileRaw, trainingFileNpy)
     m, n = dataset.shape
 
-    pctData = 0.25
-    pctTest = 0.30
-    randomState = 1962
     X_train, X_test, y_train, y_test = segment(dataset, pctData, pctTest, randomState)
 
     mx_train, nx_train = X_train.shape

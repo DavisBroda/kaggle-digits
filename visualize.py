@@ -3,20 +3,6 @@ import time
 import logging
 import os.path
 import sys
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
-from sklearn.svm import SVC
-from sklearn.svm import NuSVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.lda import LDA
-from sklearn.qda import QDA
-from sklearn.metrics import *
-from sklearn.cross_validation import train_test_split
-from sklearn.grid_search import GridSearchCV
-
 from PIL import Image
     
 def load(pathRaw, pathNpy):
