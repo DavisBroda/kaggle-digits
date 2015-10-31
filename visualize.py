@@ -93,16 +93,16 @@ def view(flatImage):
      
 def main():
     
-    print( 'Number of arguments: {0}'.format(len(sys.argv)) )
-    print( 'Argument List: {0}'.format(str(sys.argv)) )
+    #print( 'Number of arguments: {0}'.format(len(sys.argv)) )
+    #print( 'Argument List: {0}'.format(str(sys.argv)) )
     
     start = 1
     if len(sys.argv) > 1:
-        start = sys.argv[1]
+        start = int(sys.argv[1])
     
     end = start + 1
     if len(sys.argv) > 2:
-        end = sys.argv[2]
+        end = int(sys.argv[2])
     
     logging.getLogger('').handlers = []
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
