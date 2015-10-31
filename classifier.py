@@ -15,10 +15,15 @@ from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.metrics import *
 from sklearn.cross_validation import train_test_split
+from sklearn.grid_search import GridSearchCV
 
 
 def train(classifier, X_train, y_train):
     #log("Training...")
+    print(X_train.shape)
+    print(X_train)
+    print(y_train.shape)
+    print(y_train)
     classifier.fit(X_train, y_train)    
     return(classifier)
     
@@ -45,15 +50,6 @@ def load(pathRaw, pathNpy):
     
     return datasetFull
 
-def normalize(X):
-    X = X/255.0*2 - 1
-    return X
-
-def threshold(X, lower, upper):
-    X[X <= lower] = -1.0
-    X[X >= upper] = 1.0
-    return X
-    
 def segment(datasetFull, totalPct, testingPct, randomState):
     #log("Segmenting data...")
 
@@ -71,9 +67,9 @@ def segment(datasetFull, totalPct, testingPct, randomState):
     y = dataset[:,0]
     X = dataset[:,1:n]
     
-    X = normalize(X)
-    X = threshold(X, -0.85, 0.85)
-
+    # Normalize the data
+    X = X/255.0*2 - 1
+    
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testingPct, random_state=randomState)
     
     return(X_train, X_test, y_train, y_test)
@@ -107,22 +103,59 @@ def report(title, configuration, cmtx, f1, precision, recall):
     log("{0}".format(rpt))
     
     return
-    
-def ensemble(classifiers, X_train, y_train, X_test, y_test):
 
-    log("Ensemble classification...")
+def execute(X_train, y_train, X_test, y_test):
+    
+    #parameters = [ { 'n_neighbors': [1,2,3,4,5,6,7,8,9,10] } ]
+    #parameters = [ { 'n_estimators': [100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200] } ]
+    #parameters = [ { 'kernel': ['rbf'], 'gamma': [0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.010, 0.011], 'C': [0.5, 0.75, 1, 2] } ]
+    scores = ['f1']
+
+    for score in scores:
+        print("# Tuning hyper-parameters for %s" % score)
+        print()
+    
+        #clf = GridSearchCV(KNeighborsRegressor(), parameters, cv=5, scoring=score)
+        clf = GridSearchCV(RandomForestClassifier(), parameters, cv=5, scoring=score)
+        #clf = GridSearchCV(SVC(C=1), parameters, cv=5, scoring=score)
+        clf.fit(X_train, y_train)
+    
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_estimator_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        for params, mean_score, scores in clf.grid_scores_:
+            print("%0.3f (+/-%0.03f) for %r"
+                % (mean_score, scores.std() / 2, params))
+        print()
+    
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        y_true, y_pred = y_test, clf.predict(X_test)
+        print(classification_report(y_true, y_pred))
+        print()
+        
+def OLDexecute(X_train, y_train, X_test, y_test, parameters, scores):
+
+    log("executing classification...")
     
     predictions = []
     f1means = []
     
     # Execute (train, predict, score) each classifier individually
-    for i in range(len(classifiers)):
-        x = classifiers[i]
-        title = x[0]
-        classifier = x[1]
+    for i in range(len(parameters)):
+        parameter = parameters[i]
 
-        log("Starting classifier number: {0}, name: {1}".format(i, title))
+        log("Using parameter number: {0}, parameter: {1}".format(i, parameter))
         
+        classifier = SVC(**parameter)
+        log("Using classifier: {0}".format(classifier))
+
         train(classifier, X_train, y_train)
         y_pred = predict(classifier, X_test)
         cmtx, f1, precision, recall = score(y_test, y_pred)
@@ -136,101 +169,20 @@ def ensemble(classifiers, X_train, y_train, X_test, y_test):
         report(title, configuration, cmtx, f1, precision, recall)
 
         log("Completed classifier number: {0}, name: {1}".format(i, title))
-    
-    # Select the best classifer based upon the F1 score
-    xf1mean = max(f1means)
-    xidx = np.argmax(f1means)
-    oclassifier = classifiers[xidx]
-    xclassifier = oclassifier[1]
-    
-    majorityPrediction = vote(predictions, f1means)
-
-    mcmtx, mf1, mprecision, mrecall = score(y_test, majorityPrediction)
-    report("Majority Vote", "Majority Vote Configuration", mcmtx, mf1, mprecision, mrecall)
-
-    mf1mean = max(mf1)
-
-
-    log("Using classifier: {0}".format(xclassifier))
-    
-    return xclassifier
-
-def vote(predictions, f1means):
-    
-    #log("predictions: {0}".format(predictions))
-    #log("f1means: {0}".format(f1means))
-
-    npPredictions = np.array(predictions)
-    numClassifiers, numItems = npPredictions.shape
-    #log("INPUT numClassifiers: {0}, numItems: {1}".format(numClassifiers, numItems))
-    
-    weightedPredictions = []
-    j = 0
-    k =0
-    for i in range(numClassifiers):
-        ipredictions = npPredictions[:,i].astype(int)
-        #log("i: {0}, ipredictions: {1}".format(i, ipredictions))
-
-        f1mean = f1means[i]
-        log("f1mean: {0}".format(f1mean))
-        if f1mean > 0.97:
-            multiplier = 20
-            for k in range(k,k+multiplier):
-                #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-                weightedPredictions.insert(k, predictions[i])
-            k = k+1
-        elif f1mean > 0.95:
-            multiplier = 10
-            for k in range(k,k+multiplier):
-                #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-                weightedPredictions.insert(k, predictions[i])
-            k = k+1
-        elif f1mean > 0.90:
-            multiplier = 5
-            for k in range(k,k+multiplier):
-                #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-                weightedPredictions.insert(k, predictions[i])
-            k = k+1
-        elif f1mean > 0.85:
-            multiplier = 2
-            for k in range(k,k+multiplier):
-                #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-                weightedPredictions.insert(k, predictions[i])
-            k = k+1
-        else:
-            multiplier = 1
-            #log("(1) multiplier: {0}, classifier number: {1},  k: {2}, adding predictions: {3}".format(multiplier, i, k, predictions[j]))
-            weightedPredictions.insert(k, predictions[i])
-            k = k+1
         
-    # Use majority voting approach
-    # note: npPredictions matrix [mxn] 
-    #   m = number of classifiers
-    #   n = number of items to classify
-    npPredictions = np.array(weightedPredictions)
-    numClassifiers, numItems = npPredictions.shape
-    #log("WEIGHTED numClassifiers: {0}, numItems: {1}".format(numClassifiers, numItems))
+    return predictions
 
-    # Get the majority vote for each item
-    #   Go through each classifiers by column
-    #   Get the majority vote for that classifier
+def visualize(parameters, predictions):
     
-    # The majority prediction (majorityPrediction) is [mxn]
-    #   m = number of items
-    #   n = 1 (one vote)
-    majorityPrediction = np.zeros(numItems)
-    for i in range(numItems):
-        ipredictions = npPredictions[:,i].astype(int)
-        vote = np.argmax( np.bincount( ipredictions ) )
-        dissentionArray = np.asarray(ipredictions)
-        dissentionCount = (dissentionArray != vote).sum()
-        dissentionPct = dissentionCount / len(ipredictions)
-        if dissentionPct > 0.33:
-            log("DISSENTION: element: {0}, count: {1}, vote: {2}, dissention: {3}, dissention PCT: {4:.2f}, ipredictions: {5}".format(i, len(ipredictions), vote, dissentionCount, dissentionPct, ipredictions))
-        majorityPrediction[i] = vote
+    log("predictions: {0}".format(predictions))
+    log("parameters: {0}".format(parameters))
 
-    #log("majorityPrediction: {0}".format(majorityPrediction))
-    return majorityPrediction
+    for i in range(parameters):
+        parameter = parameterd[i]
+        log("parameter: {0}".format(parameter))
+        prediction = predictions[i]
+        log("prediction: {0}".format(prediction))
+        
     
 def main():
     
@@ -246,8 +198,8 @@ def main():
     dataset = load(trainingFileRaw, trainingFileNpy)
     m, n = dataset.shape
 
-    pctData = 0.01
-    pctTest = 0.3
+    pctData = 0.25
+    pctTest = 0.30
     randomState = 1962
     X_train, X_test, y_train, y_test = segment(dataset, pctData, pctTest, randomState)
 
@@ -262,22 +214,9 @@ def main():
     log("y training set: rows: {0}".format(my_train))
     log("y cross-validation set: rows: {0}".format(my_test))
     
-    classifiers = []
-    #classifiers.append( [ "Random Forest Classifier", RandomForestClassifier(n_estimators=180) ] )
-    #classifiers.append( [ "Nearest Neighbour Regressor", KNeighborsRegressor(n_neighbors=3) ] )
-    #classifiers.append( [ "Decision Tree Classifier", DecisionTreeClassifier(max_depth=10) ] )
-    #classifiers.append( [ "AdaBoost Classifier", AdaBoostClassifier(DecisionTreeClassifier(max_depth=10)) ] )
-    #classifiers.append( [ "LDA Classifier", LDA() ] )
-    #classifiers.append( [ "Guassian NB Classifier", GaussianNB() ] )
-    #classifiers.append( [ "QDA Classifier", QDA(priors=None, reg_param=0.5) ] )
-    #classifiers.append( [ "Logistic Regression", LogisticRegression() ] )
-    #classifiers.append( [ "Linear SVC", LinearSVC() ] )
-    classifiers.append( [ "RBF Kernel SVC", SVC(kernel='rbf', C=2, gamma=.006) ] )
-    #classifiers.append( [ "Sigmoid Kernel SVC", SVC(kernel='sigmoid', C=10, gamma=.005) ] )
-    #classifiers.append( [ "Linear Kernel SVC", SVC(kernel='linear', C=10, gamma=.2) ] )
-    #classifiers.append( [ "NU SVC", NuSVC() ] )
+    predictions = execute(X_train, y_train, X_test, y_test)
     
-    classifierSelected = ensemble(classifiers, X_train, y_train, X_test, y_test)
+    visualize(parameters, predictions)
     
     log("Completed training / cross-validation...")
 
@@ -286,10 +225,7 @@ def main():
     testFileRaw = "data/test.csv"    
     testFileNpy = "data/test.npy"    
     X = load(testFileRaw, testFileNpy)
-
-    X = normalize(X)
-    X = threshold(X, -0.85, 0.85)
-    
+    X = X/255.0*2 - 1
     y_pred = predict(classifierSelected, X).astype(int)
     mpred = y_pred.shape
     log("Prediction count: {0}".format(mpred))
@@ -314,6 +250,8 @@ def main():
         predictionsArray[i][0] = i + 1
         predictionsArray[i][1] = prediction
 
+    print(predictionsArray)
+    print(predictionsArray.shape)
     np.savetxt(predictionsCSV, predictionsArray, comments="", header="ImageId,Label", fmt='%s', delimiter=",")
     
     log("Completed prediction, output: {0}".format(predictionsCSV))

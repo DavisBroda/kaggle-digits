@@ -1,5 +1,8 @@
-# ignore raw data files
+# ignore raw data files (keep zip versions only)
 *.csv
 
-# ignore numpy processed files
+# ignore numpy processed files (too large)
 *.npy
+
+# ignore text files (usually junk)
+*.txt
