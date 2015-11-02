@@ -87,7 +87,7 @@ def view(flatImage):
             value = image[i][j]
 
             # Equal RGB values (255 == white and 0 == black)
-            pixels[i,j] = [value, value, value]
+            pixels[i,j] = (value, value, value)
 
     img.show()
      
@@ -119,6 +119,7 @@ def main():
     predictions = execute(dataset, range(start, end))
     
     log("Completed mainline")
+    
     
 if __name__ == "__main__":
     main()    
